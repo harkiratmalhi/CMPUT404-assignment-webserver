@@ -1,5 +1,6 @@
 #  coding: utf-8 
 import socketserver
+import os
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -26,13 +27,70 @@ import socketserver
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+
+        get_data = self.data.decode('utf-8')
+
+        #get command
+        command = get_data.split(' ')[0]
+        
+        #if command is POST, PUT, or DELETE --> 405 error
+        if ((command == "POST") or (command == "PUT") or (command == "DELETE")):
+             self.request.sendall(bytearray("HTTP/1.1 405 Method Not Allowed", 'utf-8'))
+             return 0
+        
+        #make sure command is GET
+        elif command == "GET":
+            #get URI
+            uri = get_data.split(' ')[1]
+            #css and html not is uri
+            if (("css" not in uri) and ("html" not in uri)):
+                #last character in uri is /
+                if uri[-1] == "/":
+                    uri += "index.html"
+                else:
+                    #301 error
+                    self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\nLocation:" + uri +'/' +"\r\n\r\n301 Moved Permanently",'utf-8'))
+                    return 0
+
+            destination = "./www" + uri
+            html_desc = "text/html"
+            css_desc = "text/css"
+
+            if ".css" in uri:
+                print(".css IN URI")
+                #check if destination exists
+                if os.path.exists(destination):
+                    #open to read
+                    f = open(destination, 'r')
+                    file_contents = f.read()
+                    #OK 200 response
+                    self.request.sendall(bytearray('HTTP/1.1 200 OK\r\n'+"Content-Type:" + css_desc +"\r\n"  +"\r\n\r\n"+file_contents,'utf-8'))
+                    return 0
+                #404 error
+                else:
+                    self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n\r\n404 Not Found",'utf-8'))
+                    return 0
+            
+            if ".html" in uri:
+                #check if destination exists
+                if os.path.exists(destination):
+                    #open to read
+                    f = open(destination, 'r')
+                    file_contents = f.read()
+                    #OK 200 response
+                    self.request.sendall(bytearray('HTTP/1.1 200 OK\r\n'+"Content-Type:" + html_desc +"\r\n"  +"\r\n\r\n"+file_contents,'utf-8'))
+                    return 0
+                #404 error
+                else:
+                    self.request.sendall(bytearray("HTTP/1.1 404 Not Found\r\n\r\n404 Not Found",'utf-8'))
+                    return 0
+
+        #self.request.sendall(bytearray("OK",'utf-8'))
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
