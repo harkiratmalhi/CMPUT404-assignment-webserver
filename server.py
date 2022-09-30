@@ -54,7 +54,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     uri += "index.html"
                 else:
                     #301 error
-                    self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\nLocation:" + uri +'/' +"\r\n\r\n301 Moved Permanently",'utf-8'))
+                    self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\nLocation:" + uri +'/' +"\r\n\r\n",'utf-8'))
                     return 0
 
             destination = "./www" + uri
@@ -67,9 +67,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 if os.path.exists(destination):
                     #open to read
                     f = open(destination, 'r')
-                    file_contents = f.read()
+                    #file_contents = f.read()
                     #OK 200 response
-                    self.request.sendall(bytearray('HTTP/1.1 200 OK\r\n'+"Content-Type:" + css_desc +"\r\n"  +"\r\n\r\n"+file_contents,'utf-8'))
+                    self.request.sendall(bytearray('HTTP/1.1 200 OK\r\n'+"Content-Type:" + css_desc +"\r\n\r\n",'utf-8'))
                     return 0
                 #404 error
                 else:
@@ -83,7 +83,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     f = open(destination, 'r')
                     file_contents = f.read()
                     #OK 200 response
-                    self.request.sendall(bytearray('HTTP/1.1 200 OK\r\n'+"Content-Type:" + html_desc +"\r\n"  +"\r\n\r\n"+file_contents,'utf-8'))
+                    self.request.sendall(bytearray('HTTP/1.1 200 OK\r\n'+"Content-Type:" + html_desc +"\r\n\r\n",'utf-8'))
                     return 0
                 #404 error
                 else:
